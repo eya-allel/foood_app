@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { sendMessage } from '../utils/api';
 
@@ -28,14 +28,23 @@ const MessageForm = ({ recipientId, recipientName }) => {
 
     try {
       console.log('Sending message to:', recipientId);
-      await sendMessage({
+      
+      // Préparer les données du message
+      const messageData = {
         recipientId,
         content: formData.content,
+        // Utiliser les informations de l'utilisateur connecté s'il existe
         senderName: currentUser ? currentUser.username : formData.senderName,
         senderEmail: currentUser ? currentUser.email : formData.senderEmail,
-        senderPhone: formData.senderPhone
-      });
+        senderPhone: formData.senderPhone || ''
+      };
+      
+      console.log('Message data being sent:', messageData);
+      
+      // Envoyer le message (api.js s'occupera de router vers la bonne endpoint)
+      await sendMessage(messageData);
 
+      // Réinitialiser le formulaire après succès
       setSuccess(true);
       setFormData({
         content: '',
@@ -45,7 +54,13 @@ const MessageForm = ({ recipientId, recipientName }) => {
       });
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Échec de l\'envoi du message. Veuillez réessayer plus tard.');
+      
+      // Afficher un message d'erreur détaillé si disponible
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(`Échec de l'envoi: ${err.response.data.message}`);
+      } else {
+        setError('Échec de l\'envoi du message. Veuillez réessayer plus tard.');
+      }
     } finally {
       setSending(false);
     }
@@ -80,6 +95,7 @@ const MessageForm = ({ recipientId, recipientName }) => {
         </div>
       )}
 
+      {/* Champs pour visiteurs non connectés */}
       {!currentUser && (
         <>
           <div>
@@ -125,6 +141,7 @@ const MessageForm = ({ recipientId, recipientName }) => {
         </>
       )}
 
+      {/* Champ de message (pour tous) */}
       <div>
         <label className="block text-gray-700 text-sm font-medium mb-1">
           Votre message <span className="text-red-500">*</span>

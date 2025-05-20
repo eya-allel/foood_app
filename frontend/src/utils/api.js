@@ -159,9 +159,18 @@ export const getCatererById = (id) => api.get(`/auth/caterer/${id}`);
 // NOUVELLE FONCTION ALTERNATIVE: obtenir un utilisateur par ID sans vérifier le rôle
 export const getUserById = (id) => api.get(`/auth/user/${id}`);
 
-// Message system API functions - MISE À JOUR avec les nouveaux chemins
-export const sendMessage = (messageData) => api.post('/auth/send-message', messageData);
-export const getReceivedMessages = () => api.get('/auth/messages');
-export const markMessageAsRead = (messageId) => api.put(`/auth/messages/${messageId}/read`);
+// Message system API functions - Utiliser la route de contournement
+export const sendMessage = (messageData) => {
+  console.log('Using fallback route for all messages');
+  return api.post('/messages/fallback-send', messageData)
+    .catch(error => {
+      console.error('Detailed error in fallback sendMessage:', error);
+      throw error;
+    });
+};
+
+export const getReceivedMessages = () => api.get('/messages/received');
+export const markMessageAsRead = (messageId) => api.put(`/messages/read/${messageId}`);
+export const replyToMessage = (messageId, content) => api.post(`/messages/reply/${messageId}`, { content });
 
 export default api;

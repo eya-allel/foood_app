@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
   sender: {
-    type: mongoose.Schema.Types.Mixed, // Peut être un ObjectId ou une chaîne pour les utilisateurs non-enregistrés
+    type: mongoose.Schema.Types.Mixed, // Mixed type to allow ObjectId or String
     required: true
   },
   senderType: {
@@ -34,6 +34,11 @@ const messageSchema = new mongoose.Schema({
   read: {
     type: Boolean,
     default: false
+  },
+  originalMessage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message',
+    default: null
   },
   createdAt: {
     type: Date,

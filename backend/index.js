@@ -4,15 +4,18 @@ const authRoutes = require('./routes/authRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const favoriteRoutes = require('./routes/favoriteRoutes');
 const cartRoutes = require('./routes/cartRoutes');
-const cors = require('cors');
-const app = express();
-const orderRoutes = require("./routes/orderRoutes");
+const orderRoutes = require('./routes/orderRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const cors = require('cors');
+require('dotenv').config(); // Si vous utilisez dotenv
 
-// Configuration CORS simple
+const app = express();
+
+// Configuration CORS améliorée
 app.use(cors({
   origin: '*',  // Accepte toutes les origines pour les tests
-  methods: ['GET', 'POST', 'PUT', 'DELETE']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middleware de base
@@ -26,19 +29,35 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Middleware de journalisation détaillée pour les routes de messages
+app.use('/api/messages', (req, res, next) => {
+  console.log(`MESSAGE API: ${req.method} ${req.url}`);
+  if (req.method === 'POST') {
+    console.log('REQUEST BODY:', req.body);
+  }
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/cart', cartRoutes);
-app.use("/api/orders", orderRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/messages', messageRoutes);
-// Error handling middleware
+
+// Route 404 pour les chemins non trouvés
+app.use((req, res, next) => {
+  res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Error handling middleware amélioré
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({ 
-    message: 'Server error', 
-    error: process.env.NODE_ENV !== 'production' ? err.message : undefined 
+  res.status(500).json({
+    message: 'Server error',
+    error: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+    stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
   });
 });
 
